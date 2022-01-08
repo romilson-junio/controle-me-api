@@ -1,9 +1,11 @@
 package com.controle.controleme.api.resource;
 
+import com.controle.controleme.api.dto.TokenDTO;
 import com.controle.controleme.api.dto.UsuarioDTO;
 import com.controle.controleme.exception.ErroAutenticacao;
 import com.controle.controleme.exception.RegraNegocioException;
 import com.controle.controleme.model.entity.Usuario;
+import com.controle.controleme.service.JwtService;
 import com.controle.controleme.service.LancamentoService;
 import com.controle.controleme.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -21,12 +23,14 @@ public class UsuarioResource {
 
     private final UsuarioService service;
     private final LancamentoService lancamentoService;
+    private final JwtService jwtService;
 
     @PostMapping("/autenticar")
-    public ResponseEntity autenticar( @RequestBody UsuarioDTO dto){
+    public ResponseEntity<?> autenticar( @RequestBody UsuarioDTO dto){
         try{
             Usuario usuario = service.autenticar(dto.getEmail(), dto.getSenha());
-            return ResponseEntity.ok(usuario);
+            TokenDTO tokenDTO = new TokenDTO(usuario.getNome(), jwtService.getarToken(usuario));
+            return ResponseEntity.ok(tokenDTO);
         } catch (ErroAutenticacao e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
